@@ -242,6 +242,13 @@
             if (body[0].intersects(coin)) {
                 score += 10;
                 aCoin.play();
+                fetch('https://jsonplaceholder.typicode.com/posts',{method:'POST',body: score})
+                .then(function(){
+                    console.log('Score has been sent');
+                })
+                .catch(function(e){
+                    console.log('Something went wrong', e);
+                })
                 t = random(5000) + 2500;
                 coin.x = -10;
                 coin.y = -10;
