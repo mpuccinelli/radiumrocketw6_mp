@@ -240,8 +240,7 @@
     }
 
     function run(){
-        // window.requestAnimationFrame(run); --> TOO FAST
-        setTimeout(run, 50)
+        window.requestAnimationFrame(run);
         var now = Date.now(),
         deltaTime = (now - lastUpdate) / 1000;
         if (deltaTime > 1) {
