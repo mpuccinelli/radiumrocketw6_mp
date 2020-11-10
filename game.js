@@ -22,6 +22,8 @@
         //wall = [],
         dir = 0,
         score = 0,
+        t = 0,
+        banner = false,
         iBody = new Image(),
         iFood = new Image(),
         iCoin = new Image(),
@@ -145,7 +147,10 @@
         //food.fill(ctx);
         food.drawImage(ctx, iFood);
         // Draw coin
-        coin.drawImage(ctx, iCoin);
+        if (banner){
+            coin.drawImage(ctx, iCoin);
+        }
+
         // Draw score
         ctx.fillStyle = '#fff';
         ctx.fillText('Score: ' + score, 25, 10);
@@ -231,15 +236,23 @@
                 food.x = random(canvas.width / 10 - 1) * 10;
                 food.y = random(canvas.height / 10 - 1) * 10;
                 aEat.play();
+                banner = true;
             }
             // Coin Intersects
             if (body[0].intersects(coin)) {
                 score += 10;
-                coin.x = random(canvas.width / 10 - 1) * 10;
-                coin.y = random(canvas.height / 10 - 1) * 10;
                 aCoin.play();
+                t = random(5000) + 2500;
+                coin.x = -10;
+                coin.y = -10;
+                if (banner){
+                    setTimeout(() => {
+                        coin.x = random(canvas.width / 10 - 1) * 10;
+                        coin.y = random(canvas.height / 10 - 1) * 10;   
+                    }, t);
+                    banner = false;
+                }
             }            
-
         }
 
         // // Wall Intersects
