@@ -6,16 +6,21 @@
         KEY_UP = 38,
         KEY_RIGHT = 39,
         KEY_DOWN = 40,
+
         canvas = null,
         ctx = null,
         lastPress = null,
         pause = true,
         gameover = true,
-        dir = 0,
-        score = 0,
-        //wall = [],
+        currentScene = 0,
+        scenes = [],
+        mainScene = null,
+        gameScene = null,
         body = [],
         food = null,
+        //wall = [],
+        dir = 0,
+        score = 0,
         iBody = new Image(),
         iFood = new Image(),
         aEat = new Audio(),
@@ -23,12 +28,7 @@
         lastUpdate = 0,
         FPS = 0,
         frames = 0,
-        acumDelta = 0,
-        buffer = null,
-        bufferCtx = null,
-        bufferScale = 1,
-        bufferOffsetX = 0,
-        bufferOffsetY = 0;
+        acumDelta = 0;
 
     document.addEventListener('keydown', function (evt) {
         lastPress = evt.which;
@@ -42,17 +42,7 @@
                 window.setTimeout(callback, 17);
             };
     }());
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        var w = window.innerWidth / buffer.width;
-        var h = window.innerHeight / buffer.height;
-        bufferScale = Math.min(h, w);
-        bufferOffsetX = (canvas.width - (buffer.width * bufferScale)) / 2;
-        bufferOffsetY = (canvas.height - (buffer.height * bufferScale)) / 2;
-    }
-    
+ 
     function Rectangle(x, y, width, height) {
         this.x = (x === undefined) ? 0 : x;
         this.y = (y === undefined) ? 0 : y;
@@ -95,6 +85,24 @@
         }
     };
 
+    function Scene() {
+        this.id = scenes.length;
+        scenes.push(this);
+    }
+
+    Scene.prototype = {
+        constructor: Scene,
+        load: function () {},
+        paint: function (ctx) {},
+        act: function () {}
+    };
+
+    function loadScene(scene) {
+        currentScene = scene.id;
+        scenes[currentScene].load();
+    }
+
+
     function canPlayOgg() {
         var aud = new Audio();
         if (aud.canPlayType('audio/ogg').replace(/no/, '')) {
@@ -108,24 +116,27 @@
         return ~~(Math.random() * max);
     }
 
-    function reset() {
+    //function reset() {
+    gameScene = new Scene();
+    gameScene.load = function(){
         score = 0;
         dir = 1;
         body.length = 0;
         body.push(new Rectangle(40, 40, 10, 10));
         body.push(new Rectangle(0, 0, 10, 10));
         body.push(new Rectangle(0, 0, 10, 10));
-        food.x = random(buffer.width / 10 - 1) * 10;
-        food.y = random(buffer.height / 10 - 1) * 10;
+        food.x = random(canvas.width / 10 - 1) * 10;
+        food.y = random(canvas.height / 10 - 1) * 10;
         gameover = false;
     }
 
-    function paint(ctx) {
+    //function paint(ctx) {
+    gameScene.paint = function(ctx){
         var i = 0,
             l = 0;
         // Clean canvas
         ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, buffer.width, buffer.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         // Draw player
         //ctx.fillStyle = '#0f0';
         for (i = 0, l = body.length; i < l; i += 1) {
@@ -157,14 +168,15 @@
         ctx.fillText('FPS: ' + FPS, 10, 10);
     }
 
-    function act(){
+    //function act(){
+    gameScene.act = function(){
         var i = 0,
             l = 0;
 
         if (!pause){
             // GameOver Reset
             if (gameover) {
-                reset();
+                loadScene(mainScene);
             }
             // Move Body
             for (i = body.length - 1; i > 0; i -= 1) {
@@ -199,17 +211,17 @@
                 body[0].x -= 10;
             }
             // Out Screen
-            if (body[0].x > buffer.width) {
+            if (body[0].x > canvas.width) {
                 body[0].x = 0;
             }
-            if (body[0].y > buffer.height) {
+            if (body[0].y > canvas.height) {
                 body[0].y = 0;
             }
             if (body[0].x < 0) {
-                body[0].x = buffer.width;
+                body[0].x = canvas.width;
             }
             if (body[0].y < 0) {
-                body[0].y = buffer.height;
+                body[0].y = canvas.height;
             }
             // Body Intersects
             for (i = 2, l = body.length; i < l; i += 1) {
@@ -223,8 +235,8 @@
             if (body[0].intersects(food)) {
                 body.push(new Rectangle(food.x, food.y, 10, 10));
                 score += 1;
-                food.x = random(buffer.width / 10 - 1) * 10;
-                food.y = random(buffer.height / 10 - 1) * 10;
+                food.x = random(canvas.width / 10 - 1) * 10;
+                food.y = random(canvas.height / 10 - 1) * 10;
                 aEat.play();
             }
 
@@ -249,41 +261,44 @@
         }
     }
 
-    function repaint(){
-        window.requestAnimationFrame(repaint);
-        ctx.imageSmoothingEnabled = false;
-        paint(bufferCtx);
-        ctx.fillStyle = '#000';
+    // Main Scene
+    mainScene = new Scene();
+    mainScene.paint = function (ctx) {
+        // Clean canvas
+        ctx.fillStyle = '#030';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(buffer, bufferOffsetX, bufferOffsetY, buffer.width * bufferScale, buffer.height * bufferScale);
+        // Draw title
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('SNAKE', 150, 60);
+        ctx.fillText('Press Enter', 150, 90);
+    };
+    mainScene.act = function () {
+        // Load next scene
+        if (lastPress === KEY_ENTER) {
+            loadScene(gameScene);
+        lastPress = null;
+        }
+    };
+
+    function repaint() {
+        window.requestAnimationFrame(repaint);
+        if (scenes.length) {
+            scenes[currentScene].paint(ctx);
+        }
     }
 
-    function run(){
-        setTimeout(run,50);
-        var now = Date.now(),
-        deltaTime = (now - lastUpdate) / 1000;
-        if (deltaTime > 1) {
-            deltaTime = 0;
+    function run() {
+        setTimeout(run, 50);
+        if (scenes.length) {
+            scenes[currentScene].act();
         }
-        lastUpdate = now;
-        frames += 1;
-        acumDelta += deltaTime;
-        if (acumDelta > 1) {
-            FPS = frames;
-            frames = 0;
-            acumDelta -= 1;
-        }
-        act();
     }
 
     function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
-        // Load buffer
-        buffer = document.createElement('canvas');
-        bufferCtx = buffer.getContext('2d');
-        buffer.width = 300;
-        buffer.height = 150;
+        // Load assets
         iBody.src = 'assets/body.png';
         iFood.src = 'assets/fruit.png';
         if (canPlayOgg()) {
@@ -294,7 +309,6 @@
             aDie.src="assets/dies.m4a";
         }
         food = new Rectangle(80, 80, 10, 10);
-        resize();
         run();
         repaint();
 
@@ -303,8 +317,6 @@
         // wall.push(new Rectangle(100, 100, 10, 10));
         // wall.push(new Rectangle(200, 50, 10, 10));
         // wall.push(new Rectangle(200, 100, 10, 10));
-        // Load assets
-
     } 
 
     window.addEventListener('load', init, false);
