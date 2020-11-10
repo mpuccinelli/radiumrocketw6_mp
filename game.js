@@ -18,30 +18,20 @@
         gameScene = null,
         body = [],
         food = null,
+        coin = null,
         //wall = [],
         dir = 0,
         score = 0,
         iBody = new Image(),
         iFood = new Image(),
+        iCoin = new Image(),
         aEat = new Audio(),
         aDie = new Audio(),
-        lastUpdate = 0,
-        FPS = 0,
-        frames = 0,
-        acumDelta = 0;
+        aCoin = new Audio();
 
     document.addEventListener('keydown', function (evt) {
         lastPress = evt.which;
     }, false);
-
-    window.requestAnimationFrame = (function () {
-        return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            function (callback) {
-                window.setTimeout(callback, 17);
-            };
-    }());
  
     function Rectangle(x, y, width, height) {
         this.x = (x === undefined) ? 0 : x;
@@ -127,6 +117,8 @@
         body.push(new Rectangle(0, 0, 10, 10));
         food.x = random(canvas.width / 10 - 1) * 10;
         food.y = random(canvas.height / 10 - 1) * 10;
+        coin.x = random(canvas.width / 10 - 1) * 10;
+        coin.y = random(canvas.height / 10 - 1) * 10;
         gameover = false;
     }
 
@@ -152,9 +144,11 @@
         //ctx.fillStyle = '#f00';
         //food.fill(ctx);
         food.drawImage(ctx, iFood);
+        // Draw coin
+        coin.drawImage(ctx, iCoin);
         // Draw score
         ctx.fillStyle = '#fff';
-        ctx.fillText('Score: ' + score, 50, 10);
+        ctx.fillText('Score: ' + score, 25, 10);
         // Draw pause
         if (pause) {
             ctx.textAlign = 'center';
@@ -163,9 +157,8 @@
             } else {
                 ctx.fillText('PAUSE', 150, 75);
             }
-            ctx.textAlign = 'left';
+            //ctx.textAlign = 'left';
         }
-        ctx.fillText('FPS: ' + FPS, 10, 10);
     }
 
     //function act(){
@@ -239,6 +232,13 @@
                 food.y = random(canvas.height / 10 - 1) * 10;
                 aEat.play();
             }
+            // Coin Intersects
+            if (body[0].intersects(coin)) {
+                score += 10;
+                coin.x = random(canvas.width / 10 - 1) * 10;
+                coin.y = random(canvas.height / 10 - 1) * 10;
+                aCoin.play();
+            }            
 
         }
 
@@ -301,14 +301,18 @@
         // Load assets
         iBody.src = 'assets/body.png';
         iFood.src = 'assets/fruit.png';
+        iCoin.src = 'assets/coins.png';
         if (canPlayOgg()) {
             aEat.src="assets/chomp.oga";
             aDie.src="assets/dies.oga";
+            aCoin.src="assets/coins.oga";
         } else {
             aEat.src="assets/chomp.m4a";
             aDie.src="assets/dies.m4a";
+            aCoin.src="assets/coins.m4a";
         }
         food = new Rectangle(80, 80, 10, 10);
+        coin = new Rectangle(80, 80, 10, 10);
         run();
         repaint();
 
@@ -320,7 +324,6 @@
     } 
 
     window.addEventListener('load', init, false);
-    window.addEventListener('resize', resize, false);
 }(window));
 
 
