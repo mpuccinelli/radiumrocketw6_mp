@@ -19,11 +19,24 @@
         iBody = new Image(),
         iFood = new Image(),
         aEat = new Audio(),
-        aDie = new Audio();
+        aDie = new Audio(),
+        lastUpdate = 0,
+        FPS = 0,
+        frames = 0,
+        acumDelta = 0;
 
     document.addEventListener('keydown', function (evt) {
         lastPress = evt.which;
     }, false);
+
+    window.requestAnimationFrame = (function () {
+        return window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            function (callback) {
+                window.setTimeout(callback, 17);
+            };
+    }());
 
     function Rectangle(x, y, width, height) {
         this.x = (x === undefined) ? 0 : x;
@@ -115,7 +128,7 @@
         food.drawImage(ctx, iFood);
         // Draw score
         ctx.fillStyle = '#fff';
-        ctx.fillText('Score: ' + score, 0, 10);
+        ctx.fillText('Score: ' + score, 50, 10);
         // Draw pause
         if (pause) {
             ctx.textAlign = 'center';
@@ -126,6 +139,7 @@
             }
             ctx.textAlign = 'left';
         }
+        ctx.fillText('FPS: ' + FPS, 10, 10);
     }
 
     function act(){
@@ -226,7 +240,21 @@
     }
 
     function run(){
-        setTimeout(run, 50);
+        // window.requestAnimationFrame(run); --> TOO FAST
+        setTimeout(run, 50)
+        var now = Date.now(),
+        deltaTime = (now - lastUpdate) / 1000;
+        if (deltaTime > 1) {
+            deltaTime = 0;
+        }
+        lastUpdate = now;
+        frames += 1;
+        acumDelta += deltaTime;
+        if (acumDelta > 1) {
+            FPS = frames;
+            frames = 0;
+            acumDelta -= 1;
+        }
         act();
     }
 
