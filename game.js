@@ -38,6 +38,14 @@
             };
     }());
 
+    function resize(){
+        var w = window.innerWidth / canvas.width;
+        var h = window.innerHeight / canvas.height;
+        var scale = Math.min(h, w);
+        canvas.style.width = (canvas.width * scale) + 'px';
+        canvas.style.height = (canvas.height * scale) + 'px';
+    }
+    
     function Rectangle(x, y, width, height) {
         this.x = (x === undefined) ? 0 : x;
         this.y = (y === undefined) ? 0 : y;
@@ -272,6 +280,7 @@
         food = new Rectangle(80, 80, 10, 10);
         run();
         repaint();
+        resize();
         // Create walls
         // wall.push(new Rectangle(100, 50, 10, 10));
         // wall.push(new Rectangle(100, 100, 10, 10));
@@ -284,7 +293,7 @@
     window.addEventListener('load', init, false);
 }(window));
 
-
+window.addEventListener('resize', resize, false);
 
 
 
