@@ -278,9 +278,10 @@
             aDie.src="assets/dies.m4a";
         }
         food = new Rectangle(80, 80, 10, 10);
+        resize();
         run();
         repaint();
-        resize();
+
         // Create walls
         // wall.push(new Rectangle(100, 50, 10, 10));
         // wall.push(new Rectangle(100, 100, 10, 10));
@@ -291,9 +292,10 @@
     } 
 
     window.addEventListener('load', init, false);
+    window.addEventListener('resize', resize, false);
 }(window));
 
-window.addEventListener('resize', resize, false);
+
 
 
 
